@@ -85,7 +85,7 @@ jobs:
         run: |
           cd ./builds/${{ env.ROOT_DIR }}
           echo "adding susfs"
-          cp ./susfs4ksu/kernel_patches/KernelSU-Next/10_enable_susfs_for_ksu.patch ./yaap/KernelSU-Next/
+          cp ./susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./yaap/KernelSU-Next/
           cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./yaap/common/
           cp ./susfs4ksu/kernel_patches/fs/susfs.c ./yaap/common/fs/
           cp ./susfs4ksu/kernel_patches/include/linux/susfs.h ./yaap/common/include/linux/
