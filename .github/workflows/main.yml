@@ -27,6 +27,9 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Set up Bazel
+        uses: bazelbuild/setup-bazelisk@v2
+
       - name: Create Builds Directory
         run: |
           if [ ! -d "./builds" ]; then
@@ -133,6 +136,32 @@ jobs:
           patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
 
           echo "SUSFS added successfully"
+
+      - name: Verify BUILD.bazel
+        run: |
+          if [ ! -f builds/YAAP-2025-01-28-08-04-AM-release/yaap/kernel_platform/common/BUILD.bazel ]; then
+            echo "Error: BUILD.bazel file not found!"
+            exit 1
+          fi
+
+      - name: Fix BUILD.bazel
+        run: |
+          echo "Fixing BUILD.bazel..."
+          cat <<EOF > builds/YAAP-2025-01-28-08-04-AM-release/yaap/kernel_platform/common/BUILD.bazel
+          load("//path/to:defs.bzl", "_define_common_kernel")
+
+          _define_common_kernel(
+              name = "kernel_aarch64_dist",
+              srcs = glob([
+                  "fs/**/*.c",
+                  "include/**/*.h",
+              ]),
+              deps = [
+                  "//other:target",
+              ],
+          )
+          EOF
+
 
       - name: Build Kernel
         run: |
