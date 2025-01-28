@@ -111,8 +111,8 @@ jobs:
           echo "Applying patches..."
 
           # Check if KernelSU-Next directory exists
-          if [ -d "./builds/YAAP-2025-01-28-06-28-AM-release/yaap/kernel_platform/common/KernelSU-Next" ]; then
-          cd ./builds/YAAP-2025-01-28-06-28-AM-release/yaap/kernel_platform/common/KernelSU-Next
+          if [ -d "./common/KernelSU-Next" ]; then
+          cd ./common/KernelSU-Next
           patch -p1 < 10_enable_susfs_for_ksu.patch || true
           cd ../../..
           else
