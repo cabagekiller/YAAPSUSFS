@@ -85,16 +85,19 @@ jobs:
       - name: Add SUSFS
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
-          echo "adding susfs"
-           # Create necessary directories
+          #!/bin/bash
+
+          echo "Adding SUSFS"
+
+          # Create necessary directories
           mkdir -p ./common/fs
           mkdir -p ./common/include/linux
-          
+
           # Copy SUSFS files
           cp ../../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
           cp ../../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
           cp ../../susfs4ksu/kernel_patches/include/linux/susfs_def.h ./common/include/linux/
-          
+
           # Copy patches
           cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./common/KernelSU-Next/
           cp ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
@@ -103,21 +106,38 @@ jobs:
           cp ../../kernel_patches/apk_sign.c_fix.patch ./
           cp ../../kernel_patches/Makefile_fix.patch ./
           cp ../../kernel_patches/core_hook.c_fix.patch ./
-          
+
           # Apply patches
-          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common/KernelSU-Next
+          echo "Applying patches..."
+
+          # Check if KernelSU-Next directory exists
+          if [ -d "./builds/YAAP-2025-01-28-06-28-AM-release/yaap/kernel_platform/common/KernelSU-Next" ]; then
+          cd ./builds/YAAP-2025-01-28-06-28-AM-release/yaap/kernel_platform/common/KernelSU-Next
           patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          
-          cd ../common
+          cd ../../..
+          else
+          echo "Error: KernelSU-Next directory not found!"
+          exit 1
+          fi
+
+          cd ./common
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           patch -p1 -F 3 < 69_hide_stuff.patch || true
-          sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
-          
+
+          # Fix Makefile
+          if [ -f "./fs/Makefile" ]; then
+              sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
+          else
+              echo "Error: ./fs/Makefile not found!"
+              exit 1
+          fi
+
           cd ..
           patch -p1 -F 3 < selinux.c_fix.patch || true
           patch -p1 -F 3 < apk_sign.c_fix.patch || true
           patch -p1 --fuzz=3 < Makefile_fix.patch || true
           patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
+
           echo "SUSFS added successfully"
 
       - name: Build Kernel
