@@ -106,7 +106,7 @@ jobs:
           cp ../../kernel_patches/core_hook.c_fix.patch ./
           
           # Apply patches
-          cd KernelSU-Next
+          cd /common/KernelSU-Next
           patch -p1 < 10_enable_susfs_for_ksu.patch || true
           
           cd ../common
