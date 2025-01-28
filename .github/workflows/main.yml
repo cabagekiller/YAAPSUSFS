@@ -27,11 +27,6 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Setup Bazel
-        uses: ./.github/actions/bazel
-        with:
-          release: "6.1.0"
-
       - name: Create Builds Directory
         run: |
           if [ ! -d "./builds" ]; then
