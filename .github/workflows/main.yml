@@ -80,7 +80,9 @@ jobs:
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
           ls -l
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common/KernelSU-Next/kernel
+          cd /KernelSU-Next
+          ls -l
+          cd /kernel
           sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
           ls -l
