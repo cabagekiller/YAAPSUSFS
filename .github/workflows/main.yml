@@ -141,7 +141,7 @@ jobs:
 
       - name: Build Kernel
         run: |
-          cd ./builds/${{ env.ROOT_DIR }}/yaap
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
           sed -i '2s/check_defconfig//' ./common/build.config.gki
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
