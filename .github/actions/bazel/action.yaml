@@ -1,0 +1,21 @@
+name: "Setup Bazel"
+description: "Setup bazelisk for bazel build"
+inputs:
+  release:
+    description: "Bazelisk release version"
+    required: false
+    default: "latest"
+runs:
+  using: "composite"
+  steps:
+    - name: Install Bazelisk
+      shell: bash
+      run: |
+        if ! command -v bazelisk &> /dev/null; then
+          echo "Bazelisk not found. Installing..."
+          curl -sLo bazelisk "https://github.com/bazelbuild/bazelisk/releases/download/v${{ inputs.release }}/bazelisk-linux-amd64"
+          chmod +x bazelisk
+          sudo mv bazelisk /usr/local/bin/
+        else
+          echo "Bazelisk already installed."
+        fi
