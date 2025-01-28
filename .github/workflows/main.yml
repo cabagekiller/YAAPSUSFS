@@ -114,13 +114,12 @@ jobs:
           if [ -d "./common/KernelSU-Next" ]; then
           cd ./common/KernelSU-Next
           patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          cd ../../..
           else
           echo "Error: KernelSU-Next directory not found!"
           exit 1
           fi
 
-          cd ./common
+          cd ..
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           patch -p1 -F 3 < 69_hide_stuff.patch || true
 
