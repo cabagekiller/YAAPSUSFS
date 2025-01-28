@@ -158,7 +158,7 @@ jobs:
           
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
-          tools/bazel run //common:kernel_aarch64_dist
+          tools/bazel run -t pineapple gki //common:kernel_aarch64_dist
 
       - name: Copy Image.lz4
         run: |
