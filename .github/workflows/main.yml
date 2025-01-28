@@ -82,6 +82,8 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
           cd KernelSU-Next/kernel
           sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
+          ls -l
 
       - name: Add SUSFS
         run: |
