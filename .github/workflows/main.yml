@@ -65,7 +65,7 @@ jobs:
           echo "Get the kernel..."
           mkdir yaap
           cd ./yaap
-          repo init -u https://github.com/yaap/manifest.git -b fifteen-waffle --git-lfs
+          repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b  default
           repo sync -j$(nproc --all) --no-tags --no-clone-bundle --current-branch
 
       - name: Setup Kernel Environment
