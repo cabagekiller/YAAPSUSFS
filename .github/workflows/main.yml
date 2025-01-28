@@ -58,6 +58,7 @@ jobs:
           echo "Cloning repositories..."
           git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
+          git clone https://github.com/TheWildJames/kernel_patches.git
 
       - name: Get the Kernel
         run: |
