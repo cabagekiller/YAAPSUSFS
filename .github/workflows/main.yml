@@ -77,6 +77,7 @@ jobs:
       - name: Add KernelSU-Next
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap
+          ls -l
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
           sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
 
