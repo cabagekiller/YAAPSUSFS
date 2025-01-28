@@ -56,7 +56,6 @@ jobs:
         run: |
           cd ./builds/${{ env.ROOT_DIR }}
           echo "Cloning repositories..."
-          # git clone https://github.com/TheWildJames/android14-5.15.git # Commenting this out because it is not used in the original script
           git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
 
@@ -84,7 +83,7 @@ jobs:
       - name: Add KernelSU
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
 
       - name: Add SUSFS
         run: |
@@ -99,7 +98,7 @@ jobs:
           cd ./yaap/KernelSU/
           patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ../common
-          patch -p1 < 50_add_susfs_in_gki-android14-5.15.patch
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
           echo "SUSFS added successfully"
 
       - name: Build Kernel
