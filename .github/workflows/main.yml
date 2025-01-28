@@ -83,18 +83,40 @@ jobs:
 
       - name: Add SUSFS
         run: |
-          cd ./builds/${{ env.ROOT_DIR }}
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
           echo "adding susfs"
-          cp ./susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./yaap/KernelSU-Next/
-          cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./yaap/common/
-          cp ./susfs4ksu/kernel_patches/fs/susfs.c ./yaap/common/fs/
-          cp ./susfs4ksu/kernel_patches/include/linux/susfs.h ./yaap/common/include/linux/
-          cp ./susfs4ksu/kernel_patches/fs/sus_su.c ./yaap/common/fs/
-          cp ./susfs4ksu/kernel_patches/include/linux/sus_su.h ./yaap/common/include/linux/
-          cd ./yaap/KernelSU/
-          patch -p1 < 10_enable_susfs_for_ksu.patch
+           # Create necessary directories
+          mkdir -p ./common/fs
+          mkdir -p ./common/include/linux
+          
+          # Copy SUSFS files
+          cp ../../../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
+          cp ../../../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
+          cp ../../../susfs4ksu/kernel_patches/include/linux/susfs_def.h ./common/include/linux/
+          
+          # Copy patches
+          cp ../../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./common/KernelSU-Next/
+          cp ../../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+          cp ../../../kernel_patches/69_hide_stuff.patch ./common/
+          cp ../../../kernel_patches/selinux.c_fix.patch ./
+          cp ../../../kernel_patches/apk_sign.c_fix.patch ./
+          cp ../../../kernel_patches/Makefile_fix.patch ./
+          cp ../../../kernel_patches/core_hook.c_fix.patch ./
+          
+          # Apply patches
+          cd KernelSU-Next
+          patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          
           cd ../common
-          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+          patch -p1 -F 3 < 69_hide_stuff.patch || true
+          sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
+          
+          cd ..
+          patch -p1 -F 3 < selinux.c_fix.patch || true
+          patch -p1 -F 3 < apk_sign.c_fix.patch || true
+          patch -p1 --fuzz=3 < Makefile_fix.patch || true
+          patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
           echo "SUSFS added successfully"
 
       - name: Build Kernel
