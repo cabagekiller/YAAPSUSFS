@@ -65,14 +65,8 @@ jobs:
           echo "Get the kernel..."
           mkdir yaap
           cd ./yaap
-          repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b  default
+          repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b default --depth=1
           repo sync -j$(nproc --all) --no-tags --no-clone-bundle --current-branch
-
-      - name: Setup Kernel Environment
-        run: |
-          cd ./builds/${{ env.ROOT_DIR }}/yaap
-          source build/envsetup.sh
-          lunch yaap_device-user && m yaap
 
       - name: Remove ABI Protected Exports
         run: |
@@ -80,16 +74,17 @@ jobs:
           rm -rf ./common/android/abi_gki_protected_exports_aarch64
           rm -rf ./common/android/abi_gki_protected_exports_x86_64
 
-      - name: Add KernelSU
+      - name: Add KernelSU-Next
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
 
       - name: Add SUSFS
         run: |
           cd ./builds/${{ env.ROOT_DIR }}
           echo "adding susfs"
-          cp ./susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./yaap/KernelSU/
+          cp ./susfs4ksu/kernel_patches/KernelSU-Next/10_enable_susfs_for_ksu.patch ./yaap/KernelSU-Next/
           cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./yaap/common/
           cp ./susfs4ksu/kernel_patches/fs/susfs.c ./yaap/common/fs/
           cp ./susfs4ksu/kernel_patches/include/linux/susfs.h ./yaap/common/include/linux/
@@ -108,16 +103,24 @@ jobs:
           sed -i '2s/check_defconfig//' ./common/build.config.gki
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          tools/bazel build --config=fast //common:kernel_aarch64_dist
+          
+          # Add additional tmpfs config setting
+          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
 
       - name: Copy Image.lz4
         run: |
