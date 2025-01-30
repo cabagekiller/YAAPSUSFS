@@ -194,7 +194,8 @@ jobs:
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          tools/bazel build //vendor/oplus/waffle.config
+          tools/bazel build gki_defconfig vendor/oplus/waffle
+
 
       - name: Copy Image.lz4
         run: |
