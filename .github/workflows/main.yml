@@ -65,7 +65,9 @@ jobs:
           mkdir yaap
           cd ./yaap
           repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b default --depth=1
-          repo sync -j$(nproc --all) --no-tags --no-clone-bundle --current-branch
+          # Before building:
+          repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all)
+          make -C common/build.config.gki.aarch64 oldconfig
 
       - name: Remove ABI Protected Exports
         run: |
@@ -166,7 +168,31 @@ jobs:
               ],
           )
           EOF
+           # Restore common kernel targets in common/BUILD.bazel
+          cat <<EOF > common/BUILD.bazel
+          load("//build/kernel/kleaf:kernel.bzl", "kernel_build")
 
+          _define_common_kernel(
+              name = "kernel_aarch64",
+              build_config = "build.config.gki.aarch64",
+              outs = ["Image.lz4"],
+              visibility = ["//visibility:public"],
+          )
+
+          kernel_build(
+              name = "kernel_aarch64_images",
+              build_config = "build.config.gki.aarch64",
+              deps = [":kernel_aarch64"],
+              visibility = ["//visibility:public"],
+          )
+          EOF
+          
+          # Fix msm-kernel dependencies in msm-kernel/BUILD.bazel
+          sed -i 's|//common:kernel_aarch64_images|//common:kernel_aarch64|g' msm-kernel/BUILD.bazel
+          
+          # Create missing extension links
+          ln -sf ../../msm-kernel/msm_kernel_extensions.bzl build/msm_kernel_extensions.bzl
+          ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/abl_extensions.bzl
 
       - name: Build Kernel
         run: |
@@ -194,7 +220,18 @@ jobs:
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          ./build_with_bazel.py -t pineapple gki
+          # Clean previous builds
+          bazel clean --expunge
+
+          # Build with proper targets and config
+          tools/bazel build \
+           --//msm-kernel:skip_abi=false \
+           --//msm-kernel:skip_abl=true \
+           --config=stamp \
+           --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
+           --ignore_missing_projects \
+           //msm-kernel:pineapple_gki_dist \
+           //msm-kernel:pineapple_gki_dtc_dist
 
 
       - name: Copy Image.lz4
