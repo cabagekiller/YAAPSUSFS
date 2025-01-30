@@ -62,7 +62,7 @@ jobs:
           rm -rf ./common/android/abi_gki_protected_exports_aarch64
           rm -rf ./common/android/abi_gki_protected_exports_x86_64
       - name: Add KernelSU-Next
-        run: >
+        run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
           ls -l
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
