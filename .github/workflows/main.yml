@@ -171,6 +171,20 @@ jobs:
       - name: Build Kernel
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
+          # Add missing rule import
+          sed -i '1i\load("//build/kernel/kleaf:kernel.bzl", "kernel_build")' ./build/kernel/BUILD.bazel
+          # Append target definition
+          echo '
+          kernel_build(
+              name = "kernel_aarch64_dist",
+              build_config = "build.config.gki.aarch64",
+              visibility = ["//visibility:public"],
+              deps = [
+              "//common:kernel_aarch64",
+              "//common:kernel_aarch64_modules",
+              ],
+          )' >> ./build/kernel/BUILD.bazel
+          # Apply SUSFS configs
           sed -i '2s/check_defconfig//' ./common/build.config.gki
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -196,7 +210,7 @@ jobs:
           tools/bazel query "//build/kernel:*"
           sed -i 's|visibility = \["//visibility:private"\]|visibility = \["//visibility:public"\]|g' ./build/kernel/kleaf/common_kernels.bzl
           echo -e "\nkernel_build(\n    name = \"kernel_aarch64_dist\",\n    build_config = \"build.config.gki.aarch64\",\n    visibility = [\"//visibility:public\"],\n)" >> ./build/kernel/BUILD.bazel
-          tools/bazel run //build/kernel:BUILD.bazel
+          tools/bazel build //build/kernel:kernel_aarch64_dist --define=prepare_abis=true
 
       - name: Copy Image.lz4
         run: |
