@@ -143,12 +143,10 @@ jobs:
 
       - name: Install Bazel
         run: |
-         sudo apt update
-         sudo apt install -y curl gnupg
-         curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg
-         sudo mv bazel-archive-keyring.gpg /usr/share/keyrings/
-         echo "deb [signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
-         sudo apt update && sudo apt install bazel
+         BAZEL_VERSION=5.4.0
+         wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
+         chmod +x bazel-*.sh
+         ./bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
 
 
       - name: Fix BUILD.bazel
@@ -194,7 +192,9 @@ jobs:
           
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
-          tools/bazel run //common:kernel_aarch64_dist
+          sed -i 's/check_defconfig//' ./common/build.config.gki
+          sed -i 's/visibility = \["//visibility:private"\]/visibility = \["//visibility:public"\]/g' ./build/kernel/kleaf/common_kernels.bzl
+          tools/bazel run //build/kernel:kernel_aarch64_dist
 
       - name: Copy Image.lz4
         run: |
