@@ -168,7 +168,7 @@ jobs:
           )
           EOF
            # Restore common kernel targets in common/BUILD.bazel
-          cat <<EOF > common/BUILD.bazel
+          cat <<EOF > builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common/BUILD.bazel
           load("//build/kernel/kleaf:kernel.bzl", "kernel_build")
 
           _define_common_kernel(
