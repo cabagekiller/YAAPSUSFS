@@ -134,47 +134,6 @@ jobs:
       - name: Fix BUILD.bazel
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
-    
-          # Create common BUILD.bazel
-          mkdir -p common
-          cat > common/BUILD.bazel <<'EOF'
-          load("//build/kernel/kleaf:kernel.bzl", "kernel_build")
-    
-          kernel_build(
-              name = "kernel_aarch64",
-              build_config = "build.config.gki.aarch64",
-              outs = ["Image.lz4"],
-              visibility = ["//visibility:public"],
-          )
-    
-          kernel_build(
-              name = "kernel_aarch64_images",
-              build_config = "build.config.gki.aarch64",
-              deps = [":kernel_aarch64"],
-              visibility = ["//visibility:public"],
-          )
-          EOF
-
-          # Handle msm-kernel directory conditionally
-          if [ -d "msm-kernel" ]; then
-            echo "Found msm-kernel directory"
-            if [ -f "msm-kernel/BUILD.bazel" ]; then
-              sed -i 's|//common:kernel_aarch64_images|//common:kernel_aarch64|g' msm-kernel/BUILD.bazel
-            else
-              echo "::warning::msm-kernel/BUILD.bazel not found, creating default"
-              cat > msm-kernel/BUILD.bazel <<'EOF'
-          load("//build/kernel/kleaf:kernel.bzl", "kernel_build")
-    
-          kernel_build(
-              name = "pineapple_gki_dist",
-              build_config = "build.config.gki.aarch64",
-              visibility = ["//visibility:public"],
-          )
-          EOF
-            fi
-          else
-            echo "::warning::msm-kernel directory not found, skipping modifications"
-          fi
 
           # Create symbolic links safely
           mkdir -p build
