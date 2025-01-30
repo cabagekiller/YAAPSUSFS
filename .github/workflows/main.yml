@@ -151,8 +151,14 @@ jobs:
          
       - name: Verify msm-kernel directory and files
         run: |
-          echo "Checking msm-kernel directory..."
-          ls -la msm-kernel || echo "msm-kernel directory is missing!"     
+         echo "Checking msm-kernel directory..."
+         if [ -d "msm-kernel" ]; then
+          ls -la msm-kernel
+         else
+           echo "msm-kernel directory is missing!"
+         fi
+
+          
       - name: Fix BUILD.bazel
         run: |
           echo "Fixing BUILD.bazel..."
