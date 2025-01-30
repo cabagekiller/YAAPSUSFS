@@ -210,7 +210,7 @@ jobs:
           tools/bazel query "//build/kernel:*"
           sed -i 's|visibility = \["//visibility:private"\]|visibility = \["//visibility:public"\]|g' ./build/kernel/kleaf/common_kernels.bzl
           echo -e "\nkernel_build(\n    name = \"kernel_aarch64_dist\",\n    build_config = \"build.config.gki.aarch64\",\n    visibility = [\"//visibility:public\"],\n)" >> ./build/kernel/BUILD.bazel
-          tools/bazel build //build/kernel:kernel_aarch64_dist --define=prepare_abis=true
+          tools/bazel build //common:kernel_aarch64_dist
 
       - name: Copy Image.lz4
         run: |
