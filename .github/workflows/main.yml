@@ -144,7 +144,9 @@ jobs:
          sudo chmod +x /usr/local/bin/bazel
 
          # Verify Bazel installation
-         bazel --version  # Will auto-download required version
+         bazel --version  # Let it download first
+         export USE_BAZEL_VERSION=5.4.0
+         bazel --version  # Should now show 5.4.0
 
 
       - name: Fix BUILD.bazel
