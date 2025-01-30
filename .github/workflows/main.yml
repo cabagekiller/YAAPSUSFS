@@ -199,7 +199,7 @@ jobs:
           else
              echo "Error: msm-kernel/BUILD.bazel does not exist!"
              exit 1
-         fi
+          fi
 
           
           # Create missing extension links
