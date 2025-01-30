@@ -14,7 +14,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git bc bison build-essential ccache curl flex g++-multilib gcc-multilib git-lfs gnupg gperf lib32ncurses-dev lib32z-dev libelf-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo
+          sudo apt-get install -y git bc bison build-essential ccache curl flex g++-multilib gcc-multilib git-lfs gnupg gperf lib32ncurses-dev lib32z-dev libelf-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo gnupg openjdk-17-jdk
 
       - name: Setup JDK 17
         uses: actions/setup-java@v3
@@ -66,10 +66,6 @@ jobs:
           cd ./yaap
           repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b default --depth=1
           repo sync -j$(nproc --all) --no-tags --no-clone-bundle --current-branch
-
-      - name: Locate Bazel Build File
-        run: |
-          find . -name "build.bazel" -o -name "BUILD"
 
       - name: Remove ABI Protected Exports
         run: |
@@ -143,10 +139,12 @@ jobs:
 
       - name: Install Bazel
         run: |
-         BAZEL_VERSION=5.4.0
-         wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
-         chmod +x bazel-*.sh
-         ./bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
+         # Install Bazelisk (version manager)
+         sudo wget https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-linux-amd64 -O /usr/local/bin/bazel
+         sudo chmod +x /usr/local/bin/bazel
+
+         # Verify Bazel installation
+         bazel --version  # Will auto-download required version
 
 
       - name: Fix BUILD.bazel
