@@ -190,8 +190,8 @@ jobs:
           sed -i 's|//common:kernel_aarch64_images|//common:kernel_aarch64|g' msm-kernel/BUILD.bazel
           
           # Create missing extension links
-          ln -sf ../../msm-kernel/msm_kernel_extensions.bzl build/msm_kernel_extensions.bzl
-          ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/abl_extensions.bzl
+          # ln -sf ../../msm-kernel/msm_kernel_extensions.bzl build/msm_kernel_extensions.bzl
+          #ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/abl_extensions.bzl
 
       - name: Build Kernel
         run: |
