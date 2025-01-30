@@ -67,7 +67,6 @@ jobs:
           repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b default --depth=1
           # Before building:
           repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all)
-          make -C common/build.config.gki.aarch64 oldconfig
 
       - name: Remove ABI Protected Exports
         run: |
