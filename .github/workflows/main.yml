@@ -193,7 +193,7 @@ jobs:
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          sed -i 's/visibility = \["//visibility:private"\]/visibility = \["//visibility:public"\]/g' ./build/kernel/kleaf/common_kernels.bzl
+          sed -i 's|visibility = \["//visibility:private"\]/visibility = \["//visibility:public"\]/g' ./build/kernel/kleaf/common_kernels.bzl
           tools/bazel run //build/kernel:kernel_aarch64_dist
 
       - name: Copy Image.lz4
