@@ -147,7 +147,6 @@ jobs:
          bazel --version  # Let it download first
          export USE_BAZEL_VERSION=5.4.0
          bazel --version  # Should now show 5.4.0
-         query "//build/kernel:*"
 
 
       - name: Fix BUILD.bazel
