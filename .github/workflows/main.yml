@@ -154,7 +154,7 @@ jobs:
       - name: Fix BUILD.bazel
         run: |
           echo "Fixing BUILD.bazel..."
-          cat <<EOF > builds/YAAP-2025-01-28-08-04-AM-release/yaap/kernel_platform/common/BUILD.bazel
+          cat <<EOF > builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common/BUILD.bazel
           load("//path/to:defs.bzl", "_define_common_kernel")
 
           _define_common_kernel(
