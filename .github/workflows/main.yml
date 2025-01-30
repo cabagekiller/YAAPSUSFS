@@ -8,7 +8,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Install Dependencies
-        run: |
+        run: >
           sudo apt-get update
           sudo apt-get install -y git bc bison build-essential ccache curl flex g++-multilib gcc-multilib git-lfs gnupg gperf lib32ncurses-dev lib32z-dev libelf-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo gnupg openjdk-17-jdk
       - name: Setup JDK 17
@@ -44,11 +44,8 @@ jobs:
         run: >
           cd ./builds/${{ env.ROOT_DIR }}
           echo "Cloning repositories..."
-          
           git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
-          
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
-          
           git clone https://github.com/TheWildJames/kernel_patches.git
       - name: Get the Kernel
         run: >
@@ -135,21 +132,30 @@ jobs:
           fi
            
       - name: Fix BUILD.bazel
-        run: |
-          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
-    
-          # Create common BUILD.bazel if missing
-          mkdir -p common
-          cat > common/BUILD.bazel <<EOF
+        run: >
+          echo "Fixing BUILD.bazel..."
+          cat <<EOF > builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common/BUILD.bazel
+          load("//path/to:defs.bzl", "_define_common_kernel")
+          _define_common_kernel(
+              name = "kernel_aarch64_dist",
+              srcs = glob([
+                  "fs/**/*.c",
+                  "include/**/*.h",
+              ]),
+              deps = [
+                  "//other:target",
+              ],
+          )
+          EOF
+           # Restore common kernel targets in common/BUILD.bazel
+          cat <<EOF > builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common/BUILD.bazel
           load("//build/kernel/kleaf:kernel.bzl", "kernel_build")
-
-          kernel_build(
+          _define_common_kernel(
               name = "kernel_aarch64",
               build_config = "build.config.gki.aarch64",
               outs = ["Image.lz4"],
               visibility = ["//visibility:public"],
           )
-
           kernel_build(
               name = "kernel_aarch64_images",
               build_config = "build.config.gki.aarch64",
@@ -157,35 +163,15 @@ jobs:
               visibility = ["//visibility:public"],
           )
           EOF
-
-
-          # Handle msm-kernel directory conditionally
-          if [ -d "msm-kernel" ]; then
-            echo "Found msm-kernel directory"
-            if [ -f "msm-kernel/BUILD.bazel" ]; then
-              sed -i 's|//common:kernel_aarch64_images|//common:kernel_aarch64|g' msm-kernel/BUILD.bazel
-            else
-              echo "::warning::msm-kernel/BUILD.bazel not found, creating default"
-              cat > msm-kernel/BUILD.bazel <<EOF
-              load("//build/kernel/kleaf:kernel.bzl", "kernel_build")
-        
-              kernel_build(
-                  name = "pineapple_gki_dist",
-                  build_config = "build.config.gki.aarch64",
-                  visibility = ["//visibility:public"],
-              )
-              EOF
-            fi
+          if [ -f "msm-kernel/BUILD.bazel" ]; then
+             sed -i 's|//common:kernel_aarch64_images|//common:kernel_aarch64|g' msm-kernel/BUILD.bazel
           else
-            echo "::warning::msm-kernel directory not found, skipping modifications"
+             echo "Error: msm-kernel/BUILD.bazel does not exist!"
+             exit 1
           fi
-
-          # Create symbolic links safely
-          mkdir -p build
-          [[ -f msm-kernel/msm_kernel_extensions.bzl ]] && ln -sf ../msm-kernel/msm_kernel_extensions.bzl build/
-          [[ -f bootable/bootloader/edk2/abl_extensions.bzl ]] && ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/
-
-          echo "BUILD.bazel fixes completed"
+          # Create missing extension links
+          ln -sf ../../msm-kernel/msm_kernel_extensions.bzl build/msm_kernel_extensions.bzl
+          ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/abl_extensions.bzl
       - name: Build Kernel
         run: >
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
