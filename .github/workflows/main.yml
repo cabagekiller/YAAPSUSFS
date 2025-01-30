@@ -148,7 +148,11 @@ jobs:
          bazel --version  # Let it download first
          export USE_BAZEL_VERSION=5.4.0
          bazel --version  # Should now show 5.4.0
-
+         
+      - name: Verify msm-kernel directory and files
+        run: |
+          echo "Checking msm-kernel directory..."
+          ls -la msm-kernel || echo "msm-kernel directory is missing!"
 
       - name: Fix BUILD.bazel
         run: |
@@ -186,12 +190,17 @@ jobs:
           )
           EOF
           
-          # Fix msm-kernel dependencies in msm-kernel/BUILD.bazel
-          sed -i 's|//common:kernel_aarch64_images|//common:kernel_aarch64|g' msm-kernel/BUILD.bazel
+          if [ -f "msm-kernel/BUILD.bazel" ]; then
+             sed -i 's|//common:kernel_aarch64_images|//common:kernel_aarch64|g' msm-kernel/BUILD.bazel
+          else
+             echo "Error: msm-kernel/BUILD.bazel does not exist!"
+             exit 1
+         fi
+
           
           # Create missing extension links
-          # ln -sf ../../msm-kernel/msm_kernel_extensions.bzl build/msm_kernel_extensions.bzl
-          #ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/abl_extensions.bzl
+          ln -sf ../../msm-kernel/msm_kernel_extensions.bzl build/msm_kernel_extensions.bzl
+          ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/abl_extensions.bzl
 
       - name: Build Kernel
         run: |
