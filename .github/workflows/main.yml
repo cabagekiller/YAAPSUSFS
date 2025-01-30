@@ -77,7 +77,7 @@ jobs:
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
           ls -l
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
           sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
 
       - name: Add SUSFS
@@ -193,7 +193,7 @@ jobs:
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          sed -i 's|visibility = \["//visibility:private"\]/visibility = \["//visibility:public"\]|g' ./build/kernel/kleaf/common_kernels.bzl
+          sed -i 's|visibility = \["//visibility:private"\]|visibility = \["//visibility:public"\]|g' ./build/kernel/kleaf/common_kernels.bzl
           tools/bazel run //build/kernel:kernel_aarch64_dist
 
       - name: Copy Image.lz4
