@@ -207,8 +207,6 @@ jobs:
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
           cd ..
-          # Clean previous builds
-          bazel clean --expunge
           # Build with proper targets and config
           ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
       - name: Copy Image.lz4
