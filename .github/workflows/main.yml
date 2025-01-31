@@ -45,7 +45,6 @@ jobs:
         with:
           submodules: recursive  # Required for nested submodules
           fetch-depth: 0  # Ensures full history is available
-          path: builds/${{ env.ROOT_DIR }}
       - name: Clone Additional Repositories    
         run: |  
           echo "Cloning repositories..."
