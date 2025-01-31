@@ -60,6 +60,8 @@ jobs:
           repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b default --depth=1
           # Before building:
           repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all)
+          ls -la ./builds/${{ env.ROOT_DIR }}/yaap
+          ls -la ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
       - name: Remove ABI Protected Exports
         run: |
           rm -rf ./common/android/abi_gki_protected_exports_aarch64
