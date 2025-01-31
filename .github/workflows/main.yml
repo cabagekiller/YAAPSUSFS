@@ -62,7 +62,6 @@ jobs:
           repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all)
       - name: Remove ABI Protected Exports
         run: |
-          cd ./builds/${{ env.ROOT_DIR }}/yaap
           rm -rf ./common/android/abi_gki_protected_exports_aarch64
           rm -rf ./common/android/abi_gki_protected_exports_x86_64
       - name: Add KernelSU-Next
