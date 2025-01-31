@@ -41,8 +41,13 @@ jobs:
           cd "$ROOT_DIR"
           echo "ROOT_DIR=$ROOT_DIR" >> $GITHUB_ENV
       - name: Clone Repositories
-        run: |
-          cd ./builds/${{ env.ROOT_DIR }}
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive  # Required for nested submodules
+          fetch-depth: 0  # Ensures full history is available
+          path: builds/${{ env.ROOT_DIR }}
+      - name: Clone Additional Repositories    
+        run: |  
           echo "Cloning repositories..."
           git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
@@ -153,7 +158,11 @@ jobs:
 
           # Update Kleaf submodule (if applicable)
           #git submodule update --init --recursive build/kernel/kleaf
-        
+      - name: Fix Kconfig
+        run: |
+          # Comment out the invalid include
+          sed -i 's|source "arch/arm64/kernel/secureguard/rootguard/Kconfig"|# source "arch/arm64/kernel/secureguard/rootguard/Kconfig"|' arch/arm64/kernel/secureguard/Kconfig
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform  
       
       - name: Build Kernel
         run: |
