@@ -139,6 +139,20 @@ jobs:
           mkdir -p build
           [[ -f msm-kernel/msm_kernel_extensions.bzl ]] && ln -sf ../msm-kernel/msm_kernel_extensions.bzl build/
           [[ -f bootable/bootloader/edk2/abl_extensions.bzl ]] && ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/
+          
+      - name: Fix Bazel Configuration
+        run: |
+          # Remove rewrite_absolute_paths_in_config from common/BUILD.bazel
+          sed -i '/rewrite_absolute_paths_in_config/d' common/BUILD.bazel
+
+          # Verify kernel_aarch64 target is defined
+          if ! grep -q "kernel_aarch64" common/BUILD.bazel; then
+            echo 'define_common_kernels(target_configs = {"kernel_aarch64": {"target_arch": "arm64", "config": "//common:gki_defconfig"}})' >> common/BUILD.bazel
+          fi
+
+          # Update Kleaf submodule (if applicable)
+          git submodule update --init --recursive build/kernel/kleaf
+        working-directory: ${{ env.KERNEL_PLATFORM_DIR }}
       
       - name: Build Kernel
         run: |
