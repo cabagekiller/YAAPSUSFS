@@ -152,7 +152,7 @@ jobs:
           fi
 
           # Update Kleaf submodule (if applicable)
-          git submodule update --init --recursive build/kernel/kleaf
+          #git submodule update --init --recursive build/kernel/kleaf
         
       
       - name: Build Kernel
