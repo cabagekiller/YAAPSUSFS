@@ -53,10 +53,15 @@ jobs:
           git clone https://github.com/TheWildJames/kernel_patches.git
       - name: Get the Kernel
         run: |
-          cd ./builds/${{ env.ROOT_DIR }}
+         BUILD_DIR="./builds/${{ env.ROOT_DIR }}"
+    
+          echo "Ensuring build directory exists..."
+          mkdir -p "$BUILD_DIR"
+          cd "$BUILD_DIR"
+    
           echo "Get the kernel..."
-          mkdir yaap
-          cd ./yaap
+          mkdir -p yaap
+          cd yaap
           repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b default --depth=1
           # Before building:
           repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all)
