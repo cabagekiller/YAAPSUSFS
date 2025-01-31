@@ -53,6 +53,7 @@ jobs:
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
           git clone https://github.com/TheWildJames/kernel_patches.git
       - name: Get the Kernel
+        working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           echo "Get the kernel..."
           mkdir -p yaap
@@ -67,8 +68,8 @@ jobs:
           rm -rf ./common/android/abi_gki_protected_exports_aarch64
           rm -rf ./common/android/abi_gki_protected_exports_x86_64
       - name: Add KernelSU-Next
+        working-directory: builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
         run: |
-          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
           ls -l
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
