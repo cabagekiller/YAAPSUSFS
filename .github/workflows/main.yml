@@ -47,18 +47,13 @@ jobs:
           fetch-depth: 0  # Ensures full history is available
       - name: Clone Additional Repositories    
         run: |  
+          cd ./builds/${{ env.ROOT_DIR }}
           echo "Cloning repositories..."
           git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
           git clone https://github.com/TheWildJames/kernel_patches.git
       - name: Get the Kernel
         run: |
-         BUILD_DIR="./builds/${{ env.ROOT_DIR }}"
-    
-          echo "Ensuring build directory exists..."
-          mkdir -p "$BUILD_DIR"
-          cd "$BUILD_DIR"
-    
           echo "Get the kernel..."
           mkdir -p yaap
           cd yaap
@@ -85,17 +80,17 @@ jobs:
           mkdir -p ./common/fs
           mkdir -p ./common/include/linux
           # Copy SUSFS files
-          cp ../../../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
-          cp ../../../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
-          cp ../../../susfs4ksu/kernel_patches/include/linux/susfs_def.h ./common/include/linux/
+          cp ../../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
+          cp ../../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
+          cp ../../susfs4ksu/kernel_patches/include/linux/susfs_def.h ./common/include/linux/
           # Copy patches
-          cp ../../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./common/KernelSU-Next/
-          cp ../../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
-          cp ../../../kernel_patches/69_hide_stuff.patch ./common/
-          cp ../../../kernel_patches/selinux.c_fix.patch ./
-          cp ../../../kernel_patches/apk_sign.c_fix.patch ./
-          cp ../../../kernel_patches/Makefile_fix.patch ./
-          cp ../../../kernel_patches/core_hook.c_fix.patch ./
+          cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./common/KernelSU-Next/
+          cp ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+          cp ../../kernel_patches/69_hide_stuff.patch ./common/
+          cp ../../kernel_patches/selinux.c_fix.patch ./
+          cp ../../kernel_patches/apk_sign.c_fix.patch ./
+          cp ../../kernel_patches/Makefile_fix.patch ./
+          cp ../../kernel_patches/core_hook.c_fix.patch ./
           # Apply patches
           echo "Applying patches..."
           # Check if KernelSU-Next directory exists
