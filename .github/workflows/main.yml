@@ -143,6 +143,7 @@ jobs:
       - name: Fix Bazel Configuration
         run: |
           # Remove rewrite_absolute_paths_in_config from common/BUILD.bazel
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
           sed -i '/rewrite_absolute_paths_in_config/d' common/BUILD.bazel
 
           # Verify kernel_aarch64 target is defined
@@ -152,7 +153,7 @@ jobs:
 
           # Update Kleaf submodule (if applicable)
           git submodule update --init --recursive build/kernel/kleaf
-        working-directory: ${{ env.KERNEL_PLATFORM_DIR }}
+        
       
       - name: Build Kernel
         run: |
