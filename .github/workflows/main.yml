@@ -20,6 +20,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+      - name: Clone Repositories
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive  # Required for nested submodules
+          fetch-depth: 0  # Ensures full history is available    
       - name: Set up Bazel
         uses: bazelbuild/setup-bazelisk@v2
       - name: Create Builds Directory
@@ -40,11 +45,6 @@ jobs:
           mkdir -p "$ROOT_DIR"
           cd "$ROOT_DIR"
           echo "ROOT_DIR=$ROOT_DIR" >> $GITHUB_ENV
-      - name: Clone Repositories
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive  # Required for nested submodules
-          fetch-depth: 0  # Ensures full history is available
       - name: Clone Additional Repositories    
         run: |  
           cd ./builds/${{ env.ROOT_DIR }}
