@@ -165,7 +165,7 @@ jobs:
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          cd ..
+         
           # Build with proper targets and config
           bazel build //msm-kernel:pineapple_gki_dist
       - name: Copy Image.lz4
