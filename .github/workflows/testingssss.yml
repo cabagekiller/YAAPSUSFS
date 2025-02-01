@@ -6,6 +6,8 @@ on:
 jobs:
   build-kernel-a14-6-1-kernelsu-susfs:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
 
     steps:
       - name: Set swap
@@ -196,13 +198,23 @@ jobs:
               exit 1
           fi
 
+           # Validate Image file existence at the correct location
+          IMAGE_FILE_PATH="$GITHUB_WORKSPACE/AnyKernel3/Image.lz4"
+          echo "IMAGE_FILE_PATH: $IMAGE_FILE_PATH"
+          if [ -f "$IMAGE_FILE_PATH" ]; then
+              echo "Image.lz4 file found: $IMAGE_FILE_PATH"
+          else
+              echo "Error: Image.lz4 file not found at $IMAGE_FILE_PATH!"
+              exit 1
+          fi
+
           # Define the repository name if not already set (keep for robustness)
           REPO_NAME=${REPO_NAME:-$GITHUB_REPOSITORY}
 
           # Create a release using the GitHub CLI, attaching the Image file
           gh release create "v${{ env.BRANCH }}-$(date +'%Y.%m.%d-%H%M%S')" "$IMAGE_FILE_PATH" \
             --repo "$REPO_NAME" \
-            --title "OP12 A15 ${{ env.BRANCH }} With KernelSU & SUSFS" \
+            --title "OP12 A15 YAAP ${{ env.BRANCH }} With KernelSU & SUSFS" \
             --notes "Kernel release" \
             --prerelease
         env:
