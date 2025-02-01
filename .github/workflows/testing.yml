@@ -71,48 +71,55 @@ jobs:
       - name: Add SUSFS
         run: |
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
-          #!/bin/bash
+
           echo "Adding SUSFS"
-          # Create necessary directories
-          mkdir -p ./common/fs
-          mkdir -p ./common/include/linux
-          # Copy SUSFS files
-          cp ../../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
-          cp ../../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
-          cp ../../susfs4ksu/kernel_patches/include/linux/susfs_def.h ./common/include/linux/
-          # Copy patches
-          cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./common/KernelSU-Next/
-          cp ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
-          cp ../../kernel_patches/69_hide_stuff.patch ./common/
-          cp ../../kernel_patches/selinux.c_fix.patch ./
-          cp ../../kernel_patches/apk_sign.c_fix.patch ./
-          cp ../../kernel_patches/Makefile_fix.patch ./
-          cp ../../kernel_patches/core_hook.c_fix.patch ./
-          # Apply patches
+          # Create directories in the kernel source root (not under /common)
+          mkdir -p ./fs
+          mkdir -p ./include/linux
+
+          # Copy SUSFS files (assuming susfs4ksu is in builds/$ROOT_DIR/susfs4ksu)
+          cp ../../../susfs4ksu/kernel_patches/fs/susfs.c ./fs/
+          cp ../../../susfs4ksu/kernel_patches/include/linux/susfs.h ./include/linux/
+          cp ../../../susfs4ksu/kernel_patches/include/linux/susfs_def.h ./include/linux/
+
+          # Copy patches to kernel_platform/ (adjust paths as needed)
+          cp ../../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
+          cp ../../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./
+          cp ../../../kernel_patches/69_hide_stuff.patch ./
+          cp ../../../kernel_patches/selinux.c_fix.patch ./
+          cp ../../../kernel_patches/apk_sign.c_fix.patch ./
+          cp ../../../kernel_patches/Makefile_fix.patch ./
+          cp ../../../kernel_patches/core_hook.c_fix.patch ./
+
+          # Apply patches from the kernel source root
           echo "Applying patches..."
-          # Check if KernelSU-Next directory exists
-          if [ -d "./common/KernelSU-Next" ]; then
-          cd ./common/KernelSU-Next
-          patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          if [ -d "./KernelSU-Next" ]; then
+            cd ./KernelSU-Next
+            patch -p1 < ../10_enable_susfs_for_ksu.patch || true
+            cd ..
           else
-          echo "Error: KernelSU-Next directory not found!"
-          exit 1
+            echo "Error: KernelSU-Next directory not found!"
+            exit 1
           fi
-          cd ../common
+
+          # Apply remaining patches in the kernel root
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           patch -p1 -F 3 < 69_hide_stuff.patch || true
-          # Fix Makefile
+
+          # Fix Makefile (ensure you're in the kernel root)
           if [ -f "./fs/Makefile" ]; then
-              sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
+            sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
           else
-              echo "Error: ./fs/Makefile not found!"
-              exit 1
+            echo "Error: ./fs/Makefile not found!"
+            exit 1
           fi
-          cd ..
-          patch -p1 -F 3 < selinux.c_fix.patch
-          patch -p1 -F 3 < apk_sign.c_fix.patch
-          patch -p1 --fuzz=3 < Makefile_fix.patch
-          patch -p1 --fuzz=3 < core_hook.c_fix.patch
+
+          # Apply remaining fixes
+          patch -p1 -F 3 < selinux.c_fix.patch || exit 1
+          patch -p1 -F 3 < apk_sign.c_fix.patch || exit 1
+          patch -p1 --fuzz=3 < Makefile_fix.patch || exit 1
+          patch -p1 --fuzz=3 < core_hook.c_fix.patch || exit 1
+
           echo "SUSFS added successfully"
       - name: Install Bazel
         run: |
