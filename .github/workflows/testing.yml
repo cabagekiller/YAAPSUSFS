@@ -177,7 +177,7 @@ jobs:
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          chmod 644 arch/arm64/kernel/secureguard/rootguard/Kconfig
+          chmod 644 ./common/arch/arm64/kernel/secureguard/rootguard/Kconfig
          
           # Build with proper targets and config
           ./build_with_bazel.py \
