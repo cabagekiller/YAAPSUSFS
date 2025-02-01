@@ -179,7 +179,33 @@ jobs:
           cd "/mnt/kernel_workspace"
           
           echo "Copying Image"
+          mkdir -p $GITHUB_WORKSPACE/AnyKernel3 # Ensure directory exists
           cp ./out/dist/Image $GITHUB_WORKSPACE/AnyKernel3/Image
+
+          # Debugging variables (removed ZIP_NAME and ZIP_FILE_PATH as they seem incorrect in context)
+          echo "BRANCH: ${{ env.BRANCH }}"
+
+          # Validate Image file existence at the correct location
+          IMAGE_FILE_PATH="$GITHUB_WORKSPACE/AnyKernel3/Image"
+          echo "IMAGE_FILE_PATH: $IMAGE_FILE_PATH"
+          if [ -f "$IMAGE_FILE_PATH" ]; then
+              echo "Image file found: $IMAGE_FILE_PATH"
+          else
+              echo "Error: Image file not found at $IMAGE_FILE_PATH!"
+              exit 1
+          fi
+
+          # Define the repository name if not already set (keep for robustness)
+          REPO_NAME=${REPO_NAME:-$GITHUB_REPOSITORY}
+
+          # Create a release using the GitHub CLI, attaching the Image file
+          gh release create "v${{ env.BRANCH }}-$(date +'%Y.%m.%d-%H%M%S')" "$IMAGE_FILE_PATH" \
+            --repo "$REPO_NAME" \
+            --title "OP12 A15 ${{ env.BRANCH }} With KernelSU & SUSFS" \
+            --notes "Kernel release" \
+            --prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload AnyKernel3
         uses: actions/upload-artifact@v4
