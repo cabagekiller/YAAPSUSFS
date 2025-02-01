@@ -1,0 +1,214 @@
+name: Build and Release Kernel test
+on:
+  workflow_dispatch: null
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git bc bison build-essential ccache curl flex g++-multilib gcc-multilib git-lfs gnupg gperf lib32ncurses-dev lib32z-dev libelf-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo gnupg openjdk-17-jdk
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Set up Bazel
+        uses: bazelbuild/setup-bazelisk@v2
+      - name: Create Builds Directory
+        run: |
+          if [ ! -d "./builds" ]; then
+            echo "'builds' folder not found. Creating it..."
+            mkdir -p ./builds
+          else
+            echo "'builds' folder already exists removing it."
+            rm -rf ./builds
+            mkdir -p ./builds
+          fi
+      - name: Create Root Folder
+        run: |
+          cd ./builds
+          ROOT_DIR="YAAP-$(date +'%Y-%m-%d-%I-%M-%p')-release"
+          echo "Creating root folder $ROOT_DIR..."
+          mkdir -p "$ROOT_DIR"
+          cd "$ROOT_DIR"
+          echo "ROOT_DIR=$ROOT_DIR" >> $GITHUB_ENV
+      - name: Clone Repositories
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}
+          echo "Cloning repositories..."
+          git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
+          git clone https://github.com/TheWildJames/kernel_patches.git
+      - name: Get the Kernel
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}
+          echo "Get the kernel..."
+          mkdir yaap
+          cd ./yaap
+          repo init -u https://github.com/yaap/kernel_platform_manifest_sm8650 -b default --depth=1
+          # Before building:
+          repo sync -c --force-sync --no-tags --no-clone-bundle -j$(nproc --all)
+      - name: Remove ABI Protected Exports
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}/yaap
+          rm -rf ./common/android/abi_gki_protected_exports_aarch64
+          rm -rf ./common/android/abi_gki_protected_exports_x86_64
+      - name: Add KernelSU-Next
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
+          ls -l
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
+          sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
+      - name: Add SUSFS
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
+          #!/bin/bash
+          echo "Adding SUSFS"
+          # Create necessary directories
+          mkdir -p ./common/fs
+          mkdir -p ./common/include/linux
+          # Copy SUSFS files
+          cp ../../susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
+          cp ../../susfs4ksu/kernel_patches/include/linux/susfs.h ./common/include/linux/
+          cp ../../susfs4ksu/kernel_patches/include/linux/susfs_def.h ./common/include/linux/
+          # Copy patches
+          cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./common/KernelSU-Next/
+          cp ../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+          cp ../../kernel_patches/69_hide_stuff.patch ./common/
+          cp ../../kernel_patches/selinux.c_fix.patch ./
+          cp ../../kernel_patches/apk_sign.c_fix.patch ./
+          cp ../../kernel_patches/Makefile_fix.patch ./
+          cp ../../kernel_patches/core_hook.c_fix.patch ./
+          # Apply patches
+          echo "Applying patches..."
+          # Check if KernelSU-Next directory exists
+          if [ -d "./common/KernelSU-Next" ]; then
+          cd ./common/KernelSU-Next
+          patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          else
+          echo "Error: KernelSU-Next directory not found!"
+          exit 1
+          fi
+          cd ..
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+          patch -p1 -F 3 < 69_hide_stuff.patch || true
+          # Fix Makefile
+          if [ -f "./fs/Makefile" ]; then
+              sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
+          else
+              echo "Error: ./fs/Makefile not found!"
+              exit 1
+          fi
+          cd ..
+          patch -p1 -F 3 < selinux.c_fix.patch || true
+          patch -p1 -F 3 < apk_sign.c_fix.patch || true
+          patch -p1 --fuzz=3 < Makefile_fix.patch || true
+          patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
+          echo "SUSFS added successfully"
+      - name: Install Bazel
+        run: |
+          # Install Bazelisk (version manager)
+          sudo wget https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-linux-amd64 -O /usr/local/bin/bazel
+          sudo chmod +x /usr/local/bin/bazel
+          # Verify Bazel installation
+          bazel --version  # Let it download first
+          export USE_BAZEL_VERSION=5.4.0
+          bazel --version  # Should now show 5.4.0
+      - name: Verify msm-kernel directory and files
+        run: |
+          echo "Checking msm-kernel directory..."
+          if [ -d "msm-kernel" ]; then
+            ls -la msm-kernel
+          else
+            echo "msm-kernel directory is missing!"
+          fi
+           
+      - name: Fix BUILD.bazel
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
+          # Create symbolic links safely
+          mkdir -p build
+          [[ -f msm-kernel/msm_kernel_extensions.bzl ]] && ln -sf ../msm-kernel/msm_kernel_extensions.bzl build/
+          [[ -f bootable/bootloader/edk2/abl_extensions.bzl ]] && ln -sf ../../bootable/bootloader/edk2/abl_extensions.bzl build/
+          
+      - name: Fix Bazel Configuration
+        run: |
+          # Remove rewrite_absolute_paths_in_config from common/BUILD.bazel
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
+          sed -i '/rewrite_absolute_paths_in_config/d' common/BUILD.bazel
+          # Verify kernel_aarch64 target is defined
+          if ! grep -q "kernel_aarch64" common/BUILD.bazel; then
+            echo 'define_common_kernels(target_configs = {"kernel_aarch64": {"target_arch": "arm64", "config": "//common:gki_defconfig"}})' >> common/BUILD.bazel
+          fi
+          # Update Kleaf submodule (if applicable)
+          #git submodule update --init --recursive build/kernel/kleaf
+        
+      
+      - name: Build Kernel
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform
+          # Apply SUSFS configs
+          sed -i '2s/check_defconfig//' ./common/build.config.gki
+          echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
+          # Add additional tmpfs config setting
+          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+          sed -i 's/check_defconfig//' ./common/build.config.gki
+          chmod 644 arch/arm64/kernel/secureguard/rootguard/Kconfig
+         
+          # Build with proper targets and config
+          ./build_with_bazel.py \
+            -t pineapple \
+            gki \
+            --jobs=$(nproc --all) \
+            --verbose_failures \
+            --config=stamp \
+            --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
+            --ignore_missing_projects \
+      - name: Copy Image.lz4
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}/yaap
+          echo "Copying Image.lz4"
+          cp ./bazel-bin/common/kernel_aarch64/Image.lz4 ../AnyKernel3/Image.lz4
+      - name: Package Kernel
+        run: |
+          cd ./builds/${{ env.ROOT_DIR }}/AnyKernel3
+          echo "Navigating to AnyKernel3 directory..."
+          ZIP_NAME="GKI-android14-6.1-KernelSU-SUSFS-$(date +'%Y-%m-%d-%H-%M-%S').zip"
+          echo "Creating zip file $ZIP_NAME..."
+          zip -r "../$ZIP_NAME" ./*
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: GKI-android14-5.15 With KernelSU & SUSFS
+          tag_name: v$(date +'%Y.%m.%d-%H%M%S')
+          body: Kernel release
+          files: ./builds/${{ env.ROOT_DIR }}/${{ env.ZIP_NAME }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
