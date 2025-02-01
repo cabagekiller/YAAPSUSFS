@@ -188,14 +188,13 @@ jobs:
       - name: Build Kernel
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus12_v/
         run: |
-          cd kernel_platform
           mkdir out
           export PATH="/usr/lib/ccache:$PATH"
           # Modified build command with correct syntax
-          ./oplus/build/oplus_build_kernel.sh pineapple gki
+          ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
             
       - name: Debug Working Directory
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus12_v/kernel_platform/out/dist
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus12_v/out/dist
         run: |         
           pwd
           ls -l
