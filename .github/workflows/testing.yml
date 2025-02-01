@@ -66,6 +66,7 @@ jobs:
           cd ./builds/${{ env.ROOT_DIR }}/yaap/kernel_platform/common
           ls -l
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
+          cd KernelSU-Next/kernel
           sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
       - name: Add SUSFS
         run: |
@@ -97,7 +98,7 @@ jobs:
           echo "Error: KernelSU-Next directory not found!"
           exit 1
           fi
-          cd ..
+          cd ../common
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           patch -p1 -F 3 < 69_hide_stuff.patch || true
           # Fix Makefile
@@ -108,10 +109,10 @@ jobs:
               exit 1
           fi
           cd ..
-          patch -p1 -F 3 < selinux.c_fix.patch || true
-          patch -p1 -F 3 < apk_sign.c_fix.patch || true
-          patch -p1 --fuzz=3 < Makefile_fix.patch || true
-          patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
+          patch -p1 -F 3 < selinux.c_fix.patch
+          patch -p1 -F 3 < apk_sign.c_fix.patch
+          patch -p1 --fuzz=3 < Makefile_fix.patch
+          patch -p1 --fuzz=3 < core_hook.c_fix.patch
           echo "SUSFS added successfully"
       - name: Install Bazel
         run: |
