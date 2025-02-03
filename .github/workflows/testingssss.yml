@@ -85,9 +85,6 @@ jobs:
       - name: Setup SUSFS
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
-          # Create necessary directories
-          mkdir -p ./common/fs
-          mkdir -p ./common/include/linux
           
           # Copy SUSFS files
           cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/fs/susfs.c ./common/fs/
