@@ -220,5 +220,5 @@ jobs:
       - name: Upload MSM-KERNEL
         uses: actions/upload-artifact@v4
         with:
-          name: msm
+          name: OP12-YAAP
           path: /mnt/kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist/Image
