@@ -98,8 +98,8 @@ jobs:
           cp $GITHUB_WORKSPACE/kernel_patches/apk_sign.c_fix.patch ./
           cp $GITHUB_WORKSPACE/kernel_patches/Makefile_fix.patch ./
           cp $GITHUB_WORKSPACE/kernel_patches/core_hook.c_fix.patch ./
-          cp $GITHUB_WORKSPACE/kernel_patch/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
-          patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+          cp $GITHUB_WORKSPACE/kernel_patch/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next
+
           # Apply patches
           cd KernelSU-Next
           patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
