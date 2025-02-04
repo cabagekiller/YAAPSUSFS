@@ -46,8 +46,7 @@ jobs:
           # Clone repositories using the branch names
           git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
-          git clone https://github.com/TheWildJames/kernel_patches.git
-          git clone https://github.com/cabagekiller/SUS_FS-Patches.git kernel_patch
+          git clone https://github.com/WildPlusKernel/kernel_patches.git
       
       - name: Sync Kernel Source
         run: |
@@ -100,7 +99,7 @@ jobs:
           cp $GITHUB_WORKSPACE/kernel_patches/Makefile_fix.patch ./
           cp $GITHUB_WORKSPACE/kernel_patches/core_hook.c_fix.patch ./
           cp $GITHUB_WORKSPACE/kernel_patch/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
-          
+          patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
           # Apply patches
           cd KernelSU-Next
           patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
