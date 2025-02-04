@@ -1,4 +1,4 @@
-name: Build OnePlus 12 Android 14 6.1 Kernel
+name: Build YAAP OnePlus 12 Android 14 6.1 Kernel
 
 on:
   workflow_dispatch:
@@ -98,7 +98,7 @@ jobs:
           cp $GITHUB_WORKSPACE/kernel_patches/apk_sign.c_fix.patch ./
           cp $GITHUB_WORKSPACE/kernel_patches/Makefile_fix.patch ./
           cp $GITHUB_WORKSPACE/kernel_patches/core_hook.c_fix.patch ./
-          cp $GITHUB_WORKSPACE/kernel_patch/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next
+          cp $GITHUB_WORKSPACE/kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next
 
           # Apply patches
           cd KernelSU-Next
