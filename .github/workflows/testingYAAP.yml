@@ -70,7 +70,7 @@ jobs:
           sed -i 's/check_defconfig//' common/build.config.gki
           sed -i 's/ -dirty//g' common/scripts/setlocalversion
           sed -i 's/ -dirty//g' msm-kernel/scripts/setlocalversion
-          sed -i '$s|echo "\$res"|echo "$res-zsck"|' common/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "$res-cabage"|' common/scripts/setlocalversion
          
       - name: Add KernelSU
         run: |
