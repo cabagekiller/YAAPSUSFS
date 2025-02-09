@@ -51,7 +51,7 @@ jobs:
           
           # Initialize and sync kernel source
           echo "Initializing and syncing kernel source..."
-          repo init -u https://github.com/RealJohnGalt/opsm8650_kernel_manifest.git -b kplatform -m OP12.xml
+          repo init -u https://github.com/cabagekiller/opsm8650_kernel_manifest.git -b kplatform -m OP12.xml
           
           # Sync repo and apply patches
           repo --version
