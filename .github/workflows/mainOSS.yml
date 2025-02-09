@@ -137,6 +137,7 @@ jobs:
           
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+          sed -i 's/CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y/
       - name: Add Misc Configuration Settings
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace/kernel_platform..."
