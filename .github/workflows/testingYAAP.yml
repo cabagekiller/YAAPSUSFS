@@ -55,14 +55,14 @@ jobs:
           
           # Initialize and sync kernel source
           echo "Initializing and syncing kernel source..."
-          repo init -u https://github.com/RealJohnGalt/opsm8650_kernel_manifest.git -b kplatform -m default.xml
+          repo init -u https://github.com/RealJohnGalt/opsm8650_kernel_manifest.git -b oneplus/sm8650_v_15.0.0_oneplus12 -m default.xml
           
           # Sync repo and apply patches
           repo --version
           repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
           cd kernel_platform
           rm common -rf
-          git clone --depth=1 https://github.com/RealJohnGalt/kernel_common_oneplus_sm8650.git -b kplatform-staging common
+          git clone --depth=1 https://github.com/RealJohnGalt/kernel_common_oneplus_sm8650.git -b oneplus/sm8650_v_15.0.0_oneplus12 common
           
           # Modify
           rm -rf ./common/android/abi_gki_protected_exports_* || echo "No protected exports!"
