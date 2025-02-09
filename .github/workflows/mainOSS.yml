@@ -1,0 +1,211 @@
+name: Build YAAP OnePlus 12 Android 14 6.1 Kernel OSS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-kernel-a14-6-1-kernelsu-susfs:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Set swap
+        run: |
+          export SWAP_FILE=$(swapon --show=NAME | tail -n 1)
+          sudo swapoff $SWAP_FILE
+          sudo rm -rf $SWAP_FILE
+          sudo fallocate -l 16G /swap_filex
+          sudo chmod 600 /swap_filex
+          sudo mkswap /swap_filex
+          sudo swapon /swap_filex
+          df -h
+          free -h
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3 git
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
+          chmod a+x ~/repo
+          sudo mv ~/repo /usr/local/bin/repo
+      - name: Set Environment Variable
+        run: |
+          echo "BUILD_TIME=$(date "+%y%m%d%H")" >> $GITHUB_ENV
+          sudo mkdir -p /mnt/kernel_workspace
+          sudo chmod 0777 /mnt/kernel_workspace
+          
+          git config --global user.email "build-user@build-host"
+          git config --global user.name "build-user"
+      - name: Clone AnyKernel3 and Other Dependencies
+        run: |
+          echo "Cloning AnyKernel3 and other dependencies..."
+          # Clone repositories using the branch names
+          git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
+          git clone https://github.com/WildPlusKernel/kernel_patches.git
+      
+      - name: Sync Kernel Source
+        run: |
+          echo "Creating folder for configuration: /mnt/kernel_workspace..."
+          cd "/mnt/kernel_workspace"
+          
+          # Initialize and sync kernel source
+          echo "Initializing and syncing kernel source..."
+          repo init -u https://github.com/RealJohnGalt/opsm8650_kernel_manifest.git -b kplatform -m OP12.xml
+          
+          # Sync repo and apply patches
+          repo --version
+          repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+          cd kernel_platform
+          rm common -rf
+          git clone --depth=1 https://github.com/RealJohnGalt/kernel_common_oneplus_sm8650.git -b oneplus/sm8650_v_15.0.0_oneplus12 common
+          
+          # Modify
+          rm -rf ./common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          rm -rf ./msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          sed -i 's/check_defconfig//' common/build.config.gki
+          sed -i 's/ -dirty//g' common/scripts/setlocalversion
+          sed -i 's/ -dirty//g' msm-kernel/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "$res-cabage"|' common/scripts/setlocalversion
+         
+      - name: Add KernelSU
+        run: |
+          echo "Changing to configuration directory: /mnt/kernel_workspace..."
+          cd "/mnt/kernel_workspace/kernel_platform"
+          
+          echo "Adding KernelSU..."
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+          cd KernelSU-Next/kernel
+          sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
+      - name: Setup SUSFS
+        run: |
+          cd "/mnt/kernel_workspace/kernel_platform"
+          
+          # Copy SUSFS files
+          cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/fs/* ./common/fs/
+          cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
+          
+          # Copy patches
+          cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
+          cp $GITHUB_WORKSPACE/susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+          cp $GITHUB_WORKSPACE/kernel_patches/69_hide_stuff.patch ./common/
+          cp $GITHUB_WORKSPACE/kernel_patches/selinux.c_fix.patch ./
+          cp $GITHUB_WORKSPACE/kernel_patches/apk_sign.c_fix.patch ./
+          cp $GITHUB_WORKSPACE/kernel_patches/Makefile_fix.patch ./
+          cp $GITHUB_WORKSPACE/kernel_patches/core_hook.c_fix.patch ./
+          cp $GITHUB_WORKSPACE/kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next
+          # Apply patches
+          cd KernelSU-Next
+          patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+          
+          cd ../common
+          patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+          patch -p1 -F 3 < 69_hide_stuff.patch || true
+          sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
+          git add -A && git commit -a -m "BUILD Kernel" || true
+          cd ..
+          git add -A && git commit -a -m "BUILD Kernel" || true
+          git rm --cached KernelSU-Next
+          #patch -p1 -F 3 < selinux.c_fix.patch || true
+          #patch -p1 -F 3 < apk_sign.c_fix.patch || true
+          #patch -p1 --fuzz=3 < Makefile_fix.patch || true
+          #patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
+      - name: Add SUSFS Configuration Settings
+        run: |
+          echo "Changing to configuration directory: /mnt/kernel_workspace/kernel_platform..."
+          cd "/mnt/kernel_workspace/kernel_platform"
+          
+          echo "Adding configuration settings to gki_defconfig..."
+          
+          echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
+          
+          # Add additional tmpfs config setting
+          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+      - name: Add Misc Configuration Settings
+        run: |
+          echo "Changing to configuration directory: /mnt/kernel_workspace/kernel_platform..."
+          cd "/mnt/kernel_workspace/kernel_platform"
+          
+          echo "Adding configuration settings to gki_defconfig..."
+          echo "CONFIG_PID_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_POSIX_MQUEUE=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_IPC_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_USER_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_BPF_STREAM_PARSER=y" >> ./common/arch/arm64/configs/gki_defconfig
+      - name: Build the Kernel
+        run: |
+          echo "Changing to configuration directory: /mnt/kernel_workspace..."
+          cd "/mnt/kernel_workspace"
+          
+          
+          cd "/mnt/kernel_workspace"
+          
+          echo "Building the kernel..."
+          ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
+      - name: Create Bootimgs Folder and Copy Images
+        run: |
+          echo "Changing to configuration directory: /mnt/kernel_workspace..."
+          cd "/mnt/kernel_workspace"
+          
+          echo "Copying Image"
+          mkdir -p $GITHUB_WORKSPACE/AnyKernel3 # Ensure directory exists
+          cp ./out/dist/Image $GITHUB_WORKSPACE/AnyKernel3/Image
+          cp ./out/dist/Image.lz4 $GITHUB_WORKSPACE/AnyKernel3/Image.lz4
+          # Debugging variables (removed ZIP_NAME and ZIP_FILE_PATH as they seem incorrect in context)
+          echo "BRANCH: ${{ env.BRANCH }}"
+          # Validate Image file existence at the correct location
+          IMAGE_FILE_PATH="$GITHUB_WORKSPACE/AnyKernel3/Image"
+          echo "IMAGE_FILE_PATH: $IMAGE_FILE_PATH"
+          if [ -f "$IMAGE_FILE_PATH" ]; then
+              echo "Image file found: $IMAGE_FILE_PATH"
+          else
+              echo "Error: Image file not found at $IMAGE_FILE_PATH!"
+              exit 1
+          fi
+           # Validate Image file existence at the correct location
+          IMAGE_FILE_PATH="$GITHUB_WORKSPACE/AnyKernel3/Image.lz4"
+          echo "IMAGE_FILE_PATH: $IMAGE_FILE_PATH"
+          if [ -f "$IMAGE_FILE_PATH" ]; then
+              echo "Image.lz4 file found: $IMAGE_FILE_PATH"
+          else
+              echo "Error: Image.lz4 file not found at $IMAGE_FILE_PATH!"
+              exit 1
+          fi
+          # Define the repository name if not already set (keep for robustness)
+          REPO_NAME=${REPO_NAME:-$GITHUB_REPOSITORY}
+          # Create a release using the GitHub CLI, attaching the Image file
+          gh release create "v${{ env.BRANCH }}-$(date +'%Y.%m.%d-%H%M%S')" "$IMAGE_FILE_PATH" \
+            --repo "$REPO_NAME" \
+            --title "OP12 A15 YAAP ${{ env.BRANCH }} With KernelSU & SUSFS" \
+            --notes "Kernel release" \
+            --prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload AnyKernel3
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnyKernel3-OP12-A15-6.1-KernelSUNext-SUSFS-${{ env.BUILD_TIME }}
+          path: AnyKernel3/*
+
+      - name: Upload MSM-KERNEL
+        uses: actions/upload-artifact@v4
+        with:
+          name: OP12-YAAP
+          path: /mnt/kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist/Image
