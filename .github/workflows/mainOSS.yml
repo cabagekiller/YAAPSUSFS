@@ -116,9 +116,9 @@ jobs:
       - name: Fix Defconfig Error
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
-          grep -r "CONFIG_OPLUS_SCHED_HALT_MASK_PRT" . || true
-          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> msm-kernel/arch/arm64/configs/pineapple_gki_defconfig
-
+          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config
+          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/pineapple_gki_defconfig
+          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' common/arch/arm64/configs/gki_defconfig
       - name: Verify Defconfig
         run: |
           
