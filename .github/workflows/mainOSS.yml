@@ -117,16 +117,15 @@ jobs:
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
     
-          # Correct path and filename (hyphenated, under vendor/)
-          VENDOR_FRAGMENT="msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig"
+          # Correct vendor fragment filename (match build logs)
+          VENDOR_FRAGMENT="msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config"
     
-          # Add config to vendor fragment
+          # Ensure config is set to 'y' and remove conflicts
           echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> ${VENDOR_FRAGMENT}
-    
-          # Remove conflicts from base defconfig
           sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' common/arch/arm64/configs/gki_defconfig
+          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/gki_defconfig
     
-          # Verify file structure
+          # Verify fragment exists
           ls -l ${VENDOR_FRAGMENT}
 
       - name: Enable Dependencies for OPLUS_SCHED_HALT_MASK_PRT
@@ -176,6 +175,12 @@ jobs:
           echo "CONFIG_IPC_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_USER_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_BPF_STREAM_PARSER=y" >> ./common/arch/arm64/configs/gki_defconfig
+
+      - name: Clean Previous Build
+        run: |
+          cd "/mnt/kernel_workspace/kernel_platform"
+          bazel clean --expunge
+          rm -rf out/
       - name: Build the Kernel
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
@@ -190,7 +195,6 @@ jobs:
 
           # Make sure it's executable
           chmod +x build_with_bazel.py
-          bazel clean --expunge
 
           echo "Building the kernel..."
           ./build_with_bazel.py \
