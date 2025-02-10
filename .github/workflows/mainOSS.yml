@@ -174,7 +174,14 @@ jobs:
           cat targets.txt
           
           echo "Building the kernel..."
-          tools/bazel run //common:kernel_aarch64_dist
+          ./build_with_bazel.py \
+            -t pineapple \
+            gki \
+            --jobs=$(nproc --all) \
+            --verbose_failures \
+            --config=stamp \
+            --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
+            --ignore_missing_projects \
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
