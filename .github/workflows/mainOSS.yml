@@ -122,9 +122,9 @@ jobs:
       - name: Verify Defconfig
         run: |
           
-          cd "/mnt/kernel_workspace/kernel_platform"
-          sed -i 's#\# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set#CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y#' msm-kernel/.config
-          grep OPLUS_SCHED_HALT_MASK_PRT msm-kernel/.config
+          #cd "/mnt/kernel_workspace/kernel_platform"
+          #sed -i 's#\# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set#CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y#' msm-kernel/.config
+          #grep OPLUS_SCHED_HALT_MASK_PRT msm-kernel/.config
 
 
       - name: Add SUSFS Configuration Settings
