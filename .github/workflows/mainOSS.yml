@@ -173,7 +173,7 @@ jobs:
           bazel query 'kind(".*", //msm-kernel:*)'
           
           echo "Building the kernel..."
-          bazel build //msm-kernel:pineapple_gki --verbose_failures
+          python3 build_with_bazel.py --target pineapple_gki
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
