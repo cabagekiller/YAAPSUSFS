@@ -170,9 +170,10 @@ jobs:
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
           cd "/mnt/kernel_workspace/kernel_platform"
+          bazel query 'kind(".*", //msm-kernel:*)'
           
           echo "Building the kernel..."
-          bazel build //msm-kernel:pineapple_gki_config --verbose_failures
+          bazel build //msm-kernel:pineapple_gki --verbose_failures
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
