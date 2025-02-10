@@ -123,9 +123,9 @@ jobs:
         run: |
           
           cd "/mnt/kernel_workspace/kernel_platform"
-          make scripts
-          scripts/config --enable CONFIG_OPLUS_SCHED_HALT_MASK_PRT
-          cat msm-kernel/.config | grep OPLUS_SCHED_HALT_MASK_PRT
+          sed -i 's/# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set|CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y|' msm-kernel/.config
+          grep OPLUS_SCHED_HALT_MASK_PRT msm-kernel/.config
+
 
       - name: Add SUSFS Configuration Settings
         run: |
@@ -169,9 +169,6 @@ jobs:
       - name: Build the Kernel
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
-          cd "/mnt/kernel_workspace"
-          
-          
           cd "/mnt/kernel_workspace"
           
           echo "Building the kernel..."
