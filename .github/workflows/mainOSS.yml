@@ -117,24 +117,25 @@ jobs:
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
     
-          # Add to vendor fragment (hyphenated filename)
-          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig
+          # Correct path and filename (hyphenated, under vendor/)
+          VENDOR_FRAGMENT="msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig"
     
-          # Remove conflicting entries (correct paths)
-          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig  # Optional: Only if duplicate
+          # Add config to vendor fragment
+          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> ${VENDOR_FRAGMENT}
+    
+          # Remove conflicts from base defconfig
           sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' common/arch/arm64/configs/gki_defconfig
     
-          # Verify files exist
-          ls -l msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig
-          ls -l common/arch/arm64/configs/gki_defconfig
-      - name: Verify Defconfig
+          # Verify file structure
+          ls -l ${VENDOR_FRAGMENT}
+
+      - name: Enable Dependencies for OPLUS_SCHED_HALT_MASK_PRT
         run: |
-          
-          #cd "/mnt/kernel_workspace/kernel_platform"
-          #sed -i 's#\# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set#CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y#' msm-kernel/.config
-          #grep OPLUS_SCHED_HALT_MASK_PRT msm-kernel/.config
-
-
+          cd "/mnt/kernel_workspace/kernel_platform"
+    
+          # Example: Enable dependency CONFIG_OPLUS_SCHED=y if needed
+          echo "CONFIG_OPLUS_SCHED=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig
+     
       - name: Add SUSFS Configuration Settings
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace/kernel_platform..."
@@ -189,6 +190,7 @@ jobs:
 
           # Make sure it's executable
           chmod +x build_with_bazel.py
+          bazel clean --expunge
 
           echo "Building the kernel..."
           ./build_with_bazel.py \
