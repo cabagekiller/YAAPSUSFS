@@ -121,7 +121,9 @@ jobs:
 
       - name: Verify Defconfig
         run: |
+          
           cd "/mnt/kernel_workspace/kernel_platform"
+          make scripts
           scripts/config --enable CONFIG_OPLUS_SCHED_HALT_MASK_PRT
           cat msm-kernel/.config | grep OPLUS_SCHED_HALT_MASK_PRT
 
