@@ -116,13 +116,15 @@ jobs:
       - name: Fix Defconfig Error
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
-    
-          # Search for the config (for debugging)
-          echo "Checking where CONFIG_OPLUS_SCHED_HALT_MASK_PRT is defined..."
           grep -r "CONFIG_OPLUS_SCHED_HALT_MASK_PRT" . || true
-    
-          # Disable the config in gki_defconfig (adjust path if found elsewhere)
-          #sed -i 's|CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y|# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set|' ./msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config
+          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> msm-kernel/arch/arm64/configs/pineapple_gki_defconfig
+
+      - name: Verify Defconfig
+        run: |
+          cd "/mnt/kernel_workspace/kernel_platform"
+          scripts/config --enable CONFIG_OPLUS_SCHED_HALT_MASK_PRT
+          cat msm-kernel/.config | grep OPLUS_SCHED_HALT_MASK_PRT
+
       - name: Add SUSFS Configuration Settings
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace/kernel_platform..."
@@ -171,7 +173,7 @@ jobs:
           cd "/mnt/kernel_workspace"
           
           echo "Building the kernel..."
-          ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
+          bazel build //msm-kernel:pineapple_gki_config --verbose_failures
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
