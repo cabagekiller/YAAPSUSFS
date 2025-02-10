@@ -169,7 +169,7 @@ jobs:
       - name: Build the Kernel
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
-          cd "/mnt/kernel_workspace"
+          cd "/mnt/kernel_workspace/kernel_platform"
           
           echo "Building the kernel..."
           bazel build //msm-kernel:pineapple_gki_config --verbose_failures
