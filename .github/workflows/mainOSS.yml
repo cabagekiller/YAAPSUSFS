@@ -116,9 +116,17 @@ jobs:
       - name: Fix Defconfig Error
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
-          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config
-          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/pineapple_gki_defconfig
+    
+          # Add to vendor fragment (hyphenated filename)
+          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig
+    
+          # Remove conflicting entries (correct paths)
+          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig  # Optional: Only if duplicate
           sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' common/arch/arm64/configs/gki_defconfig
+    
+          # Verify files exist
+          ls -l msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig
+          ls -l common/arch/arm64/configs/gki_defconfig
       - name: Verify Defconfig
         run: |
           
