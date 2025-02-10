@@ -75,8 +75,10 @@ jobs:
           
           echo "Adding KernelSU..."
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-          cd KernelSU-Next/kernel
-          sed -i 's/ccflags-y += -DKSU_VERSION=16/ccflags-y += -DKSU_VERSION=12335/' ./Makefile
+          cd KernelSU-Next
+          KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
+          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+          sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
       - name: Setup SUSFS
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
@@ -110,6 +112,17 @@ jobs:
           #patch -p1 -F 3 < apk_sign.c_fix.patch || true
           #patch -p1 --fuzz=3 < Makefile_fix.patch || true
           #patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
+
+      - name: Fix Defconfig Error
+        run: |
+          cd "/mnt/kernel_workspace/kernel_platform"
+    
+          # Search for the config (for debugging)
+          echo "Checking where CONFIG_OPLUS_SCHED_HALT_MASK_PRT is defined..."
+          grep -r "CONFIG_OPLUS_SCHED_HALT_MASK_PRT" . || true
+    
+          # Disable the config in gki_defconfig (adjust path if found elsewhere)
+          sed -i 's|CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y|# CONFIG_OPLUS_SCHED_HALT_MASK_PRT is not set|' common/arch/arm64/configs/gki_defconfig
       - name: Add SUSFS Configuration Settings
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace/kernel_platform..."
