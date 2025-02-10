@@ -171,10 +171,17 @@ jobs:
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
           cd "/mnt/kernel_workspace/kernel_platform"
-          #bazel query 'kind(".*", //msm-kernel:*)' > targets.txt
-          #cat targets.txt
-          cd ..
-          
+
+          # Check if the script exists
+          if [[ ! -f build_with_bazel.py ]]; then
+            echo "ERROR: build_with_bazel.py not found!"
+            ls -l
+            exit 1
+          fi
+
+          # Make sure it's executable
+          chmod +x build_with_bazel.py
+
           echo "Building the kernel..."
           ./build_with_bazel.py \
             -t pineapple \
@@ -183,7 +190,7 @@ jobs:
             --verbose_failures \
             --config=stamp \
             --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
-            --ignore_missing_projects \
+            --ignore_missing_projects
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
