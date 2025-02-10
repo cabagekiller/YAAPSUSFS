@@ -117,7 +117,7 @@ jobs:
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
           grep -r "CONFIG_OPLUS_SCHED_HALT_MASK_PRT" . || true
-          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=n" >> msm-kernel/arch/arm64/configs/pineapple_gki_defconfig
+          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> msm-kernel/arch/arm64/configs/pineapple_gki_defconfig
 
       - name: Verify Defconfig
         run: |
