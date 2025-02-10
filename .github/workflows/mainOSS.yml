@@ -170,8 +170,8 @@ jobs:
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
           cd "/mnt/kernel_workspace/kernel_platform"
-          bazel query 'kind(".*", //msm-kernel:*)' > targets.txt
-          cat targets.txt
+          #bazel query 'kind(".*", //msm-kernel:*)' > targets.txt
+          #cat targets.txt
           cd ..
           
           echo "Building the kernel..."
