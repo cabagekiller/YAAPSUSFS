@@ -170,10 +170,11 @@ jobs:
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
           cd "/mnt/kernel_workspace/kernel_platform"
-          bazel query 'kind(".*", //msm-kernel:*)'
+          bazel query 'kind(".*", //msm-kernel:*)' > targets.txt
+          cat targets.txt
           
           echo "Building the kernel..."
-          python3 build_with_bazel.py --target pineapple_gki
+          tools/bazel run //common:kernel_aarch64_dist
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
