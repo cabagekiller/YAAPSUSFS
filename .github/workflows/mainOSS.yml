@@ -118,22 +118,22 @@ jobs:
           cd "/mnt/kernel_workspace/kernel_platform"
     
           # Correct vendor fragment filename (match build logs)
-          VENDOR_FRAGMENT="msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config"
+        #  VENDOR_FRAGMENT="msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config"
     
           # Ensure config is set to 'y' and remove conflicts
-          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> ${VENDOR_FRAGMENT}
-          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' common/arch/arm64/configs/gki_defconfig
-          sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/gki_defconfig
+         # echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> ${VENDOR_FRAGMENT}
+         # sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' common/arch/arm64/configs/gki_defconfig
+         # sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/gki_defconfig
     
           # Verify fragment exists
-          ls -l ${VENDOR_FRAGMENT}
+        #  ls -l ${VENDOR_FRAGMENT}
 
       - name: Enable Dependencies for OPLUS_SCHED_HALT_MASK_PRT
         run: |
           cd "/mnt/kernel_workspace/kernel_platform"
     
           # Example: Enable dependency CONFIG_OPLUS_SCHED=y if needed
-          echo "CONFIG_OPLUS_SCHED=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig
+          #echo "CONFIG_OPLUS_SCHED=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple-gki_defconfig
      
       - name: Add SUSFS Configuration Settings
         run: |
@@ -160,7 +160,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_OPLUS_SCHED=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config
+          #echo "CONFIG_OPLUS_SCHED=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config
           
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -185,27 +185,10 @@ jobs:
       - name: Build the Kernel
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
-          cd "/mnt/kernel_workspace/kernel_platform"
-
-          # Check if the script exists
-          if [[ ! -f build_with_bazel.py ]]; then
-            echo "ERROR: build_with_bazel.py not found!"
-            ls -l
-            exit 1
-          fi
-
-          # Make sure it's executable
-          chmod +x build_with_bazel.py
-
+          cd "/mnt/kernel_workspace"
+          
           echo "Building the kernel..."
-          ./build_with_bazel.py \
-            -t pineapple \
-            gki \
-            --jobs=$(nproc --all) \
-            --verbose_failures \
-            --config=stamp \
-            --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
-            --ignore_missing_projects
+          ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
