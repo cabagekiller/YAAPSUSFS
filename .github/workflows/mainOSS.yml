@@ -189,6 +189,10 @@ jobs:
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
           cd "/mnt/kernel_workspace"
+
+          scripts/config -d CONFIG_OPLUS_SCHED_HALT_MASK_PRT
+
+          make -C msm-kernel LLVM=1 DEPMOD=depmod DTC=/mnt/kernel_workspace/kernel_platform/out/bazel/output_user_root/4e74c8cfcc93de2e7b59426a5ed22096/sandbox/linux-sandbox/84/execroot/__main__/build/kernel/build-tools/path/linux-x86/dtc O=/mnt/kernel_workspace/kernel_platform/out/bazel/output_user_root/4e74c8cfcc93de2e7b59426a5ed22096/sandbox/linux-sandbox/84/execroot/__main__/out/android14-6.1/msm-kernel vendor/pineapple-gki_defconfig
           
           echo "Building the kernel..."
           ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
