@@ -80,7 +80,7 @@ jobs:
           echo "Copying Image"
           mkdir -p $GITHUB_WORKSPACE/AnyKernel3 # Ensure directory exists
           cp ./out/dist/Image $GITHUB_WORKSPACE/AnyKernel3/Image
-          cp ./out/dist/Image.lz4 $GITHUB_WORKSPACE/AnyKernel3/Image.lz4
+          #cp ./out/dist/Image.lz4 $GITHUB_WORKSPACE/AnyKernel3/Image.lz4
           # Debugging variables (removed ZIP_NAME and ZIP_FILE_PATH as they seem incorrect in context)
           echo "BRANCH: ${{ env.BRANCH }}"
           # Validate Image file existence at the correct location
