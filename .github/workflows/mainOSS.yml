@@ -67,6 +67,11 @@ jobs:
           sed -i 's/ -dirty//g' common/scripts/setlocalversion
           sed -i 's/ -dirty//g' msm-kernel/scripts/setlocalversion
           sed -i '$s|echo "\$res"|echo "$res-cabage"|' common/scripts/setlocalversion
+
+      - name: Search for OPLUS_SCHED_HALT_MASK_PRT
+        run: |
+          cd /mnt/kernel_workspace/kernel_platform
+          grep -rn "OPLUS_SCHED_HALT_MASK_PRT".
          
       - name: Add KernelSU
         run: |
@@ -159,8 +164,6 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_OPLUS_SCHED_HALT_MASK_PRT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_OPLUS_SCHED=y" >> msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config
           
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
