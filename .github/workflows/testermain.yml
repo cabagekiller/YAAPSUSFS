@@ -186,12 +186,7 @@ jobs:
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
           cd "/mnt/kernel_workspace"
           cd kernel_platform  # Add this line
-          #sed -i '/CONFIG_OPLUS_SCHED_HALT_MASK_PRT/d' msm-kernel/arch/arm64/configs/vendor/pineapple_GKI.config
           
-          #make -C msm-kernel LLVM=1 DEPMOD=depmod \
-          #DTC=/mnt/kernel_workspace/kernel_platform/out/bazel/output_user_root/.../sandbox/.../execroot/__main__/build/kernel/build-tools/path/linux-x86/dtc \
-          #O=/mnt/kernel_workspace/kernel_platform/out/... \
-          #gki_defconfig
           cd ..
           echo "Building the kernel..."
           ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
@@ -215,15 +210,6 @@ jobs:
               echo "Error: Image file not found at $IMAGE_FILE_PATH!"
               exit 1
           fi
-           # Validate Image file existence at the correct location
-          IMAGE_FILE_PATH="$GITHUB_WORKSPACE/AnyKernel3/Image.lz4"
-          echo "IMAGE_FILE_PATH: $IMAGE_FILE_PATH"
-          if [ -f "$IMAGE_FILE_PATH" ]; then
-              echo "Image.lz4 file found: $IMAGE_FILE_PATH"
-          else
-              echo "Error: Image.lz4 file not found at $IMAGE_FILE_PATH!"
-              exit 1
-          fi
           # Define the repository name if not already set (keep for robustness)
           REPO_NAME=${REPO_NAME:-$GITHUB_REPOSITORY}
           # Create a release using the GitHub CLI, attaching the Image file
@@ -231,7 +217,6 @@ jobs:
             --repo "$REPO_NAME" \
             --title "OP12 A15 YAAP ${{ env.BRANCH }} With KernelSU & SUSFS" \
             --notes "Kernel release" \
-            --prerelease
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
