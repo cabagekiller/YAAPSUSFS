@@ -57,8 +57,8 @@ jobs:
           repo --version
           repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
           cd kernel_platform
-          rm common -rf
-          git clone --depth=1 https://github.com/RealJohnGalt/kernel_common_oneplus_sm8650.git -b oneplus/sm8650_v_15.0.0_oneplus12 common
+          #rm common -rf
+          #git clone --depth=1 https://github.com/RealJohnGalt/kernel_common_oneplus_sm8650.git -b oneplus/sm8650_v_15.0.0_oneplus12 common
           
       - name: Clean Previous Build
         run: |
