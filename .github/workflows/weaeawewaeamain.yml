@@ -13,7 +13,7 @@ on:
 
 env:
   DEBIAN_FRONTEND: noninteractive
-  ROOT_DIR_PREFIX: "OPNORD4-A15"
+  ROOT_DIR_PREFIX: "OP12-YAAP"
   BRANCH: "android14-6.1"
 
 jobs:
