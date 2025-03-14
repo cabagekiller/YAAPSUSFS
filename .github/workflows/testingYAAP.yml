@@ -44,7 +44,7 @@ jobs:
           echo "Cloning AnyKernel3 and other dependencies..."
 
           # Clone repositories using the branch names
-          git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
+          git clone https://github.com/TheWildJames/AnyKernel3.git -b gki-2.0
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
           git clone https://github.com/WildPlusKernel/kernel_patches.git
       
