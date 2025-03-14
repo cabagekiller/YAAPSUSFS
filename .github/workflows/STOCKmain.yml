@@ -40,9 +40,9 @@ jobs:
         run: |
           echo "Cloning AnyKernel3 and other dependencies..."
           # Clone repositories using the branch names
-          git clone https://github.com/TheWildJames/AnyKernel3.git -b android14-6.1
+          git clone https://github.com/TheWildJames/AnyKernel3.git -b gki-2.0
           #git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
-          #git clone https://github.com/WildPlusKernel/kernel_patches.git
+          #git clone https://github.com/cabagekiller/kernel_patches.git
       
       - name: Sync Kernel Source
         run: |
@@ -51,27 +51,18 @@ jobs:
           
           # Initialize and sync kernel source
           echo "Initializing and syncing kernel source..."
-          repo init -u https://github.com/RealJohnGalt/opsm8650_kernel_manifest.git -b kplatform -m default.xml
+          repo init -u https://github.com/RealJohnGalt/opsm8650_kernel_manifest.git -b kplatform -m default.xml --depth=1
           
           # Sync repo and apply patches
-          repo --version
-          repo --trace sync -c -j$(nproc --all) --no-tags --fail-fast
-          cd kernel_platform
-          #rm common -rf
-          #git clone --depth=1 https://github.com/RealJohnGalt/kernel_common_oneplus_sm8650.git -b oneplus/sm8650_v_15.0.0_oneplus12 common
-          
-      - name: Clean Previous Build
-        run: |
-          cd "/mnt/kernel_workspace/kernel_platform"
-          bazel clean --expunge
-          rm -rf out/
+          repo sync
+
       - name: Build the Kernel
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
           cd "/mnt/kernel_workspace"
 
           echo "Building the kernel..."
-          ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
+          ./kernel_platform/build_with_bazel.py -t pineapple gki
       - name: Create Bootimgs Folder and Copy Images
         run: |
           echo "Changing to configuration directory: /mnt/kernel_workspace..."
@@ -97,7 +88,7 @@ jobs:
           # Create a release using the GitHub CLI, attaching the Image file
           gh release create "v${{ env.BRANCH }}-$(date +'%Y.%m.%d-%H%M%S')" "$IMAGE_FILE_PATH" \
             --repo "$REPO_NAME" \
-            --title "OP12 A15 YAAP ${{ env.BRANCH }} With KernelSU & SUSFS" \
+            --title "OP12 A15 YAAP ${{ env.BRANCH }}" \
             --notes "Kernel release" \
             --prerelease
         env:
