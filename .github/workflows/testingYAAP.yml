@@ -200,7 +200,6 @@ jobs:
           echo "Copying Image"
           mkdir -p $GITHUB_WORKSPACE/AnyKernel3 # Ensure directory exists
           cp ./out/dist/Image $GITHUB_WORKSPACE/AnyKernel3/Image
-          #cp ./out/dist/Image.lz4 $GITHUB_WORKSPACE/AnyKernel3/Image.lz4
 
           # Debugging variables (removed ZIP_NAME and ZIP_FILE_PATH as they seem incorrect in context)
           echo "BRANCH: ${{ env.BRANCH }}"
@@ -212,16 +211,6 @@ jobs:
               echo "Image file found: $IMAGE_FILE_PATH"
           else
               echo "Error: Image file not found at $IMAGE_FILE_PATH!"
-              exit 1
-          fi
-
-           # Validate Image file existence at the correct location
-          IMAGE_FILE_PATH="$GITHUB_WORKSPACE/AnyKernel3/Image.lz4"
-          echo "IMAGE_FILE_PATH: $IMAGE_FILE_PATH"
-          if [ -f "$IMAGE_FILE_PATH" ]; then
-              echo "Image.lz4 file found: $IMAGE_FILE_PATH"
-          else
-              echo "Error: Image.lz4 file not found at $IMAGE_FILE_PATH!"
               exit 1
           fi
 
